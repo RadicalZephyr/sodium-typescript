@@ -1,5 +1,6 @@
 import {Vertex} from './Vertex';
 import * as Collections from 'typescript-collections';
+import { IntrusiveIndexedPriorityQueue } from "./IntrusiveIndexedPriorityQueue";
 
 export class Entry
 {
@@ -8,12 +9,30 @@ export class Entry
     this.rank = rank;
     this.action = action;
     this.seq = Entry.nextSeq++;
+    this.pqRank = rank.rank;
+    this.inPq = false;
+    this.pqNext = null;
+    this.pqPrev = null;
+    rank.entries.push(this);
   }
 
   private static nextSeq: number = 0;
   rank: Vertex;
   action: () => void;
   seq: number;
+  pqRank: number;
+  inPq: boolean;
+  pqNext: Entry | null;
+  pqPrev: Entry | null;
+
+  dispose() {
+    for (let i = 0; i < this.rank.entries.length; ++i) {
+      if (this.rank.entries[i] === this) {
+        this.rank.entries.splice(i, 1);
+        break;
+      }
+    }
+  }
 
   toString(): string
   {
@@ -30,33 +49,24 @@ export class Transaction
   constructor() {}
 
   inCallback: number = 0;
-  private toRegen: boolean = false;
+  rerankEntriesSet = new Set<Entry>();
 
-  requestRegen(): void
-  {
-    this.toRegen = true;
-  }
+  private static prioritizedQ = new IntrusiveIndexedPriorityQueue<Entry>();
 
-  prioritizedQ: Collections.PriorityQueue<Entry> = new Collections.PriorityQueue<Entry>((a, b) =>
-  {
-    // Note: Low priority numbers are treated as "greater" according to this
-    // comparison, so that the lowest numbers are highest priority and go first.
-    if (a.rank.rank < b.rank.rank) return 1;
-    if (a.rank.rank > b.rank.rank) return -1;
-    if (a.seq < b.seq) return 1;
-    if (a.seq > b.seq) return -1;
-    return 0;
-  });
-  private entries: Collections.Set<Entry> = new Collections.Set<Entry>((a) => a.toString());
+  private entries: Set<Entry> = new Set<Entry>();
   private sampleQ: Array<() => void> = [];
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
   private static collectCyclesAtEnd: boolean = false;
 
+  requestRegen() {
+    // no longer required
+  }
+
   prioritized(target: Vertex, action: () => void): void
   {
     const e = new Entry(target, action);
-    this.prioritizedQ.enqueue(e);
+    Transaction.prioritizedQ.enqueue(e);
     this.entries.add(e);
   }
 
@@ -100,14 +110,10 @@ export class Transaction
   // ranks, then we need to re-generate it to make sure it's up-to-date.
   private checkRegen(): void
   {
-    if (this.toRegen)
-    {
-      this.toRegen = false;
-      this.prioritizedQ.clear();
-      const es = this.entries.toArray();
-      for (let i: number = 0; i < es.length; i++)
-        this.prioritizedQ.enqueue(es[i]);
+    for (let entry of this.rerankEntriesSet) {
+      Transaction.prioritizedQ.changeRank(entry, entry.rank.rank);
     }
+    this.rerankEntriesSet.clear();
   }
 
   public isActive() : boolean
@@ -122,10 +128,11 @@ export class Transaction
       while (true)
       {
         this.checkRegen();
-        if (this.prioritizedQ.isEmpty()) break;
-        const e = this.prioritizedQ.dequeue();
-        this.entries.remove(e);
+        if (Transaction.prioritizedQ.isEmpty()) break;
+        const e = Transaction.prioritizedQ.dequeue();
+        this.entries.delete(e);
         e.action();
+        e.dispose();
       }
 
       const sq = this.sampleQ;
@@ -133,7 +140,7 @@ export class Transaction
       for (let i = 0; i < sq.length; i++)
         sq[i]();
 
-      if(this.prioritizedQ.isEmpty() && this.sampleQ.length < 1) break;
+      if(Transaction.prioritizedQ.isEmpty() && this.sampleQ.length < 1) break;
     }
 
     for (let i = 0; i < this.lastQ.length; i++)

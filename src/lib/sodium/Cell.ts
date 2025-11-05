@@ -405,29 +405,34 @@ export class Cell<A> {
                 });
             };
             let last_ca : Cell<A> = null;
-            const cca_value = Operational.value(cca),
-                  src = new Source(
-                        cca_value.getVertex__(),
-                        () => {
-                            let kill2 : () => void = last_ca === null ? null :
-                                    Operational.value(last_ca).listen_(out.getVertex__(),
-                                        (a : A) => { outValue = a; pump(); }, false);
-                            const kill1 = cca_value.listen_(out.getVertex__(), (ca : Cell<A>) => {
-                                last_ca = ca;
-                                // Connect before disconnect to avoid memory bounce, when switching to same cell twice.
-                                let nextKill2 = Operational.value(ca).listen_(out.getVertex__(),
-                                    (a : A) => {
-                                        outValue = a;
-                                        pump();
-                                    },
-                                    false);
-                                if (kill2 !== null)
-                                    kill2();
-                                kill2 = nextKill2;
-                            }, false);
-                            return () => { kill1(); kill2(); };
+            const cca_value = Operational.value(cca);
+            const src = new Source(
+                cca_value.getVertex__(),
+                () => {
+                    let kill2 : () => void = last_ca === null ? null :
+                            Operational.value(last_ca).listen_(out.getVertex__(),
+                                (a : A) => { outValue = a; pump(); }, false);
+                    const kill1 = cca_value.listen_(out.getVertex__(), (ca : Cell<A>) => {
+                        last_ca = ca;
+                        // Connect before disconnect to avoid memory bounce, when switching to same cell twice.
+                        let nextKill2 = Operational.value(ca).listen_(out.getVertex__(),
+                            (a : A) => {
+                                outValue = a;
+                                pump();
+                            },
+                            false);
+                        if (kill2 !== null)
+                            kill2();
+                        kill2 = nextKill2;
+                    }, false);
+                    return () => {
+                        kill1();
+                        if (kill2 != null) {
+                            kill2();
                         }
-                    );
+                    };
+                }
+            );
             out.setVertex__(new Vertex("switchC", 0, [src]));
             return out.holdLazy(za);
         });
