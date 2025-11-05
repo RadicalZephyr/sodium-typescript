@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
-		"target": "es5",
-                "module": "es2015",
-                "noImplicitAny": false, //would be nice to enable this...
+		"target": "esnext",
+		"module": "esnext",
+		"noImplicitAny": false, //would be nice to enable this...
 		"removeComments": false,
 		"preserveConstEnums": true,
 		"sourceMap": true,
@@ -11,10 +11,8 @@
 		"moduleResolution": "node",
 		"diagnostics": true,
 		"lib": [
-			"es6",
-			"es5",
-			"dom"
-    ]
+			"ESNext",
+		]
 		
 	},
 	"files": [

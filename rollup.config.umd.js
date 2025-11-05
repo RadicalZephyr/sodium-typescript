@@ -1,6 +1,6 @@
 import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
-import {uglify} from 'rollup-plugin-uglify';
+//import {uglify} from 'rollup-plugin-uglify';
 import { minify } from 'uglify-es';
 
 export default [
@@ -29,7 +29,7 @@ export default [
                 useTsconfigDeclarationDir: true,
             }),
 
-            uglify({}, minify)
+            //uglify({}, minify)
         ]
     }
 ];

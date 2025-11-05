@@ -1,4 +1,4 @@
-import { Transaction } from "./Transaction";
+import { Transaction, Entry } from "./Transaction";
 import { Set } from "typescript-collections";
 
 let totalRegistrations : number = 0;
@@ -96,6 +96,7 @@ export class Vertex {
     childrn : Vertex[] = [];
     refCount() : number { return this.targets.length; };
     visited : boolean = false;
+    entries: Entry[] = [];
     register(target : Vertex) : boolean {
         return this.increment(target);
     }
@@ -160,6 +161,9 @@ export class Vertex {
 
         this.visited = true;
 		this.rank = limit + 1;
+    for (let e of this.entries) {
+      Transaction.currentTransaction.rerankEntriesSet.add(e);
+    }
 		for (let i = 0; i < this.targets.length; i++)
 			this.targets[i].ensureBiggerThan(this.rank);
         this.visited = false;
