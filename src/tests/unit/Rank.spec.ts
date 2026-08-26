@@ -19,8 +19,8 @@ test("should test rank", done => {
         return new sodium.Cell(0);
       }
     }));
-    let sa = new sodium.Stream<number>();
-    let sb = sa.snapshot1(cb);
+    const sa = new sodium.Stream<number>();
+    const sb = sa.snapshot1(cb);
     const kill = sb.listen(() => {});
     const rank1 = sb.getVertex__().rank;
     ca.send(true);

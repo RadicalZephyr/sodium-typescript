@@ -7,7 +7,6 @@ import { Lambda1, Lambda1_deps, Lambda1_toFunction,
          toSources } from "./Lambda";
 import { Source, Vertex } from "./Vertex";
 import { Transaction } from "./Transaction";
-import { CoalesceHandler } from "./CoalesceHandler";
 import { Cell } from "./Cell";
 //import { StreamLoop } from "./StreamLoop";
 import { Listener } from "./Listener";
@@ -17,11 +16,10 @@ import { LazyCell } from "./LazyCell";
 import * as Z from "sanctuary-type-classes";
 
 class MergeState<A> {
-    constructor() {}
     left : A = null;
-    left_present : boolean = false;
+    left_present = false;
     right : A = null;
-    right_present : boolean = false;
+    right_present = false;
 }
 
 export class Stream<A> {
@@ -72,7 +70,7 @@ export class Stream<A> {
                 new Source(
                     this.vertex,
                     () => {
-                        return this.listen_(out.vertex, (a : A) => {
+                        return this.listen_(out.vertex, () => {
                             out.send_(b);
                         }, false);
                     }
@@ -96,7 +94,7 @@ export class Stream<A> {
      * be taken, because events can be dropped.
      */
     orElse(s : Stream<A>) : Stream<A> {
-        return this.merge(s, (left : A, right: A) => {
+        return this.merge(s, (left : A, _right : A) => {
             return left;
         });
     }
@@ -214,17 +212,17 @@ export class Stream<A> {
         }).filterNotNull();
     }
 
-	/**
-	 * Variant of {@link snapshot(Cell, Lambda2)} that captures the cell's value
-	 * at the time of the event firing, ignoring the stream's value.
-	 */
-	snapshot1<B>(c : Cell<B>) : Stream<B> {
+    /**
+     * Variant of {@link snapshot(Cell, Lambda2)} that captures the cell's value
+     * at the time of the event firing, ignoring the stream's value.
+     */
+    snapshot1<B>(c : Cell<B>) : Stream<B> {
         const out = new StreamWithSend<B>(null);
         out.vertex = new Vertex("snapshot1", 0, [
                 new Source(
                     this.vertex,
                     () => {
-                        return this.listen_(out.vertex, (a : A) => {
+                        return this.listen_(out.vertex, () => {
                             out.send_(c.sampleNoTrans__());
                         }, false);
                     }
@@ -233,11 +231,11 @@ export class Stream<A> {
             ]
         );
         return out;
-	}
+    }
 
-	/**
-	 * Return a stream whose events are the result of the combination using the specified
-	 * function of the input stream's event value and the value of the cell at that time.
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cell at that time.
      * <P>
      * There is an implicit delay: State updates caused by event firings being held with
      * {@link Stream#hold(Object)} don't become visible as the cell's current value until
@@ -245,8 +243,8 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot<B,C>(b : Cell<B>, f_ : ((a : A, b : B) => C) | Lambda2<A,B,C>) : Stream<C>
-	{
+    snapshot<B,C>(b : Cell<B>, f_ : ((a : A, b : B) => C) | Lambda2<A,B,C>) : Stream<C>
+    {
         const out = new StreamWithSend<C>(null);
         const ff = Lambda2_toFunction(f_);
         out.vertex = new Vertex("snapshot", 0, [
@@ -262,11 +260,11 @@ export class Stream<A> {
             ].concat(toSources(Lambda2_deps(f_)))
         );
         return out;
-	}
+    }
 
-	/**
-	 * Return a stream whose events are the result of the combination using the specified
-	 * function of the input stream's event value and the value of the cells at that time.
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
      * <P>
      * There is an implicit delay: State updates caused by event firings being held with
      * {@link Stream#hold(Object)} don't become visible as the cell's current value until
@@ -274,8 +272,8 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot3<B,C,D>(b : Cell<B>, c : Cell<C>, f_ : ((a : A, b : B, c : C) => D) | Lambda3<A,B,C,D>) : Stream<D>
-	{
+    snapshot3<B,C,D>(b : Cell<B>, c : Cell<C>, f_ : ((a : A, b : B, c : C) => D) | Lambda3<A,B,C,D>) : Stream<D>
+    {
         const out = new StreamWithSend<D>(null);
         const ff = Lambda3_toFunction(f_);
         out.vertex = new Vertex("snapshot", 0, [
@@ -292,11 +290,11 @@ export class Stream<A> {
             ].concat(toSources(Lambda3_deps(f_)))
         );
         return out;
-	}
+    }
 
-	/**
-	 * Return a stream whose events are the result of the combination using the specified
-	 * function of the input stream's event value and the value of the cells at that time.
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
      * <P>
      * There is an implicit delay: State updates caused by event firings being held with
      * {@link Stream#hold(Object)} don't become visible as the cell's current value until
@@ -304,9 +302,9 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
-	    f_ : ((a : A, b : B, c : C, d : D) => E) | Lambda4<A,B,C,D,E>) : Stream<E>
-	{
+    snapshot4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
+        f_ : ((a : A, b : B, c : C, d : D) => E) | Lambda4<A,B,C,D,E>) : Stream<E>
+    {
         const out = new StreamWithSend<E>(null);
         const ff = Lambda4_toFunction(f_);
         out.vertex = new Vertex("snapshot", 0, [
@@ -325,11 +323,11 @@ export class Stream<A> {
             ].concat(toSources(Lambda4_deps(f_)))
         );
         return out;
-	}
+    }
 
-	/**
-	 * Return a stream whose events are the result of the combination using the specified
-	 * function of the input stream's event value and the value of the cells at that time.
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
      * <P>
      * There is an implicit delay: State updates caused by event firings being held with
      * {@link Stream#hold(Object)} don't become visible as the cell's current value until
@@ -337,9 +335,9 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
-	    f_ : ((a : A, b : B, c : C, d : D, e : E) => F) | Lambda5<A,B,C,D,E,F>) : Stream<F>
-	{
+    snapshot5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
+        f_ : ((a : A, b : B, c : C, d : D, e : E) => F) | Lambda5<A,B,C,D,E,F>) : Stream<F>
+    {
         const out = new StreamWithSend<F>(null);
         const ff = Lambda5_toFunction(f_);
         out.vertex = new Vertex("snapshot", 0, [
@@ -359,11 +357,11 @@ export class Stream<A> {
             ].concat(toSources(Lambda5_deps(f_)))
         );
         return out;
-	}
+    }
 
-	/**
-	 * Return a stream whose events are the result of the combination using the specified
-	 * function of the input stream's event value and the value of the cells at that time.
+    /**
+     * Return a stream whose events are the result of the combination using the specified
+     * function of the input stream's event value and the value of the cells at that time.
      * <P>
      * There is an implicit delay: State updates caused by event firings being held with
      * {@link Stream#hold(Object)} don't become visible as the cell's current value until
@@ -371,9 +369,9 @@ export class Stream<A> {
      * always sees the value of a cell as it was before any state changes from the current
      * transaction.
      */
-	snapshot6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
-	    f_ : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) | Lambda6<A,B,C,D,E,F,G>) : Stream<G>
-	{
+    snapshot6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
+        f_ : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) | Lambda6<A,B,C,D,E,F,G>) : Stream<G>
+    {
         const out = new StreamWithSend<G>(null);
         const ff = Lambda6_toFunction(f_);
         out.vertex = new Vertex("snapshot", 0, [
@@ -395,10 +393,10 @@ export class Stream<A> {
             ].concat(toSources(Lambda6_deps(f_)))
         );
         return out;
-	}
+    }
 
-	/**
-	 * Create a {@link Cell} with the specified initial value, that is updated
+    /**
+     * Create a {@link Cell} with the specified initial value, that is updated
      * by this stream's event values.
      * <p>
      * There is an implicit delay: State updates caused by event firings don't become
@@ -409,14 +407,14 @@ export class Stream<A> {
      */
     hold(initValue : A) : Cell<A> {
         return new Cell<A>(initValue, this);
-	}
+    }
 
-	/**
-	 * A variant of {@link hold(Object)} with an initial value captured by {@link Cell#sampleLazy()}.
-	 */
-	holdLazy(initValue : Lazy<A>) : Cell<A> {
-	    return new LazyCell<A>(initValue, this);
-	}
+    /**
+     * A variant of {@link hold(Object)} with an initial value captured by {@link Cell#sampleLazy()}.
+     */
+    holdLazy(initValue : Lazy<A>) : Cell<A> {
+        return new LazyCell<A>(initValue, this);
+    }
 
     /**
      * Transform an event with a generalized state loop (a Mealy machine). The function
@@ -434,11 +432,10 @@ export class Stream<A> {
      * {@link Cell#sampleLazy()}.
      */
     collectLazy<B,S>(initState : Lazy<S>, f : ((a : A, s : S) => Tuple2<B,S>) | Lambda2<A,S,Tuple2<B,S>>) : Stream<B> {
-        const ea = this;
         return Transaction.run(() => {
             const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
-                ebs = ea.snapshot(s, f),
+                ebs = this.snapshot(s, f),
                 eb = ebs.map((bs : Tuple2<B,S>) => { return bs.a; }),
                 es_out = ebs.map((bs : Tuple2<B,S>) => { return bs.b; });
             es.loop(es_out);
@@ -461,11 +458,10 @@ export class Stream<A> {
      * {@link Cell#sampleLazy()}.
      */
     accumLazy<S>(initState : Lazy<S>, f : ((a : A, s : S) => S) | Lambda2<A,S,S>) : Cell<S> {
-        const ea = this;
         return Transaction.run(() => {
             const es = new StreamLoop<S>(),
                 s = es.holdLazy(initState),
-                es_out = ea.snapshot(s, f);
+                es_out = this.snapshot(s, f);
             es.loop(es_out);
             return es_out.holdLazy(initState);
         });
@@ -509,8 +505,7 @@ export class Stream<A> {
     listen_(target : Vertex,
             h : (a : A) => void,
             suppressEarlierFirings : boolean) : () => void {
-        if (this.vertex.register(target))
-            Transaction.currentTransaction.requestRegen();
+        this.vertex.register(target);
         const listener = new Listener<A>(h, target);
         this.listeners.push(listener);
         if (!suppressEarlierFirings && this.firings.length != 0) {
@@ -571,12 +566,12 @@ export class StreamWithSend<A> extends Stream<A> {
     }
 
     send_(a : A) : void {
-		if (this.firings.length == 0)
-			Transaction.currentTransaction.last(() => {
-			    this.firings = [];
+        if (this.firings.length == 0)
+            Transaction.currentTransaction.last(() => {
+                this.firings = [];
             });
-		this.firings.push(a);
-		const listeners = this.listeners.slice();
+        this.firings.push(a);
+        const listeners = this.listeners.slice();
         for (let i = 0; i < listeners.length; i++) {
             const h = listeners[i].h;
             Transaction.currentTransaction.prioritized(listeners[i].target, () => {
@@ -598,14 +593,14 @@ export class StreamWithSend<A> extends Stream<A> {
  * A forward reference for a {@link Stream} equivalent to the Stream that is referenced.
  */
 export class StreamLoop<A> extends StreamWithSend<A> {
-    assigned__ : boolean = false;  // to do: Figure out how to hide this
+    assigned__ = false;  // to do: Figure out how to hide this
 
     constructor()
     {
         super();
         this.vertex.name = "StreamLoop";
-    	if (Transaction.currentTransaction === null)
-    	    throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
+        if (Transaction.currentTransaction === null)
+            throw new Error("StreamLoop/CellLoop must be used within an explicit transaction");
     }
 
     /**

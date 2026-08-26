@@ -23,16 +23,16 @@ export class Router<A,K> {
                     this._inStream.listen_(
                         this._vertex,
                         (a: A) => {
-                            let ks = selector(a);
-                            let visited = new Set<K>(keyToStr);
-                            let outs: StreamWithSend<A>[] = [];
+                            const ks = selector(a);
+                            const visited = new Set<K>(keyToStr);
+                            const outs: StreamWithSend<A>[] = [];
                             for (let i = 0; i < ks.length; ++i) {
-                                let k = ks[i];
+                                const k = ks[i];
                                 if (visited.contains(k)) {
                                     continue;
                                 }
                                 visited.add(k);
-                                let outs2 = this._table.getValue(k);
+                                const outs2 = this._table.getValue(k);
                                 if (outs2 != undefined) {
                                     for (let j = 0; j < outs2.length; ++j) {
                                         outs.push(outs2[j]);
@@ -50,8 +50,8 @@ export class Router<A,K> {
     }
 
     public filterMatches(k: K): Stream<A> {
-        let out = new StreamWithSend<A>();
-        let vertex =
+        const out = new StreamWithSend<A>();
+        const vertex =
             new Vertex(
                 "Router::filterMatches",
                 this._vertex.rank + 1, // <-- estimated rank only, may be adjusted by ensureBiggerThan
@@ -68,7 +68,7 @@ export class Router<A,K> {
                             outs.push(out);
                             return () => {
                                 this._vertex.decrement(out.getVertex__());
-                                let outs2 = this._table.getValue(k);
+                                const outs2 = this._table.getValue(k);
                                 for (let i = outs2.length-1; i >= 0; --i) {
                                     if (outs2[i] == out) {
                                         outs2.splice(i, 1);

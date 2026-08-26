@@ -1,5 +1,4 @@
-import { Lambda1, Lambda1_deps, Lambda1_toFunction,
-         Lambda2, Lambda2_deps, Lambda2_toFunction } from "./Lambda";
+import { Lambda2 } from "./Lambda";
 import { StreamWithSend } from "./Stream";
 import { CoalesceHandler } from "./CoalesceHandler";
 import { Transaction } from "./Transaction";
@@ -11,12 +10,12 @@ import { Vertex } from './Vertex';
  * should downcast to {@link Stream}.
  */
 export class StreamSink<A> extends StreamWithSend<A> {
-    private disableListenCheck: boolean = false;
+    private disableListenCheck = false;
 
     constructor(f? : ((l : A, r : A) => A) | Lambda2<A, A, A>) {
         super();
         if (!f)
-            f = <(l : A, r : A) => A>((l : A, r : A) => {
+            f = <(l : A, r : A) => A>(() => {
                 throw new Error("send() called more than once per transaction, which isn't allowed. Did you want to combine the events? Then pass a combining function to your StreamSink constructor.");
             });
         this.coalescer = new CoalesceHandler<A>(f, this);
@@ -46,7 +45,7 @@ export class StreamSink<A> extends StreamWithSend<A> {
     listen_(target : Vertex,
             h : (a : A) => void,
             suppressEarlierFirings : boolean) : () => void {
-        let result = super.listen_(target, h, suppressEarlierFirings);
+        const result = super.listen_(target, h, suppressEarlierFirings);
         this.disableListenCheck = true;
         return result;
     }

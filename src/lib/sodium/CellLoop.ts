@@ -1,5 +1,4 @@
 import { Cell } from "./Cell";
-import { Lazy } from "./Lazy";
 import { LazyCell } from "./LazyCell";
 import { Transaction } from "./Transaction";
 import { StreamLoop } from "./Stream";
@@ -9,7 +8,7 @@ import { StreamLoop } from "./Stream";
  */
 export class CellLoop<A> extends LazyCell<A> {
     constructor() {
-    	super(null, new StreamLoop<A>());
+        super(null, new StreamLoop<A>());
     }
 
     /**

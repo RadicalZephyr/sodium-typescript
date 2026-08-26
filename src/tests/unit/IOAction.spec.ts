@@ -12,8 +12,7 @@ afterEach(() => {
 });
 
   test('IOAction', (done) => {
-    const name = "fromAsync",
-      action = IOAction.fromAsync((a: number, result: (b: number) => void) => {
+    const action = IOAction.fromAsync((a: number, result: (b: number) => void) => {
         setTimeout(() => {
           result(a + 1);
         }, 1);

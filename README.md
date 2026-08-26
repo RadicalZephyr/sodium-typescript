@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SodiumFRP/sodium-typescript.svg?branch=master)](https://travis-ci.org/SodiumFRP/sodium-typescript)
+[![CI](https://github.com/RadicalZephyr/sodium-typescript/actions/workflows/ci.yml/badge.svg)](https://github.com/RadicalZephyr/sodium-typescript/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/sodiumjs.svg)](https://badge.fury.io/js/sodiumjs)
 [![Bower version](https://badge.fury.io/bo/sodiumjs.svg)](https://badge.fury.io/bo/sodiumjs)
 [![Downloads](http://img.shields.io/npm/dm/sodiumjs.svg)](https://npmjs.org/package/sodiumjs)
@@ -84,6 +84,14 @@ Sodium library code is in [src/lib](src/lib)
 Packaging/tree-shaking and bundling of the library is done with [Rollup](https://rollupjs.org/)
 
 Testing is via [Jest](https://facebook.github.io/jest/)
+
+Linting is via [ESLint](https://eslint.org/) with
+[typescript-eslint](https://typescript-eslint.io/): `npm run lint` (`npm run lint:fix`
+applies the fixable ones). `npm run typecheck` runs the compiler over the library
+without emitting anything.
+
+Every push and pull request runs lint, typecheck, test and build on the supported
+Node versions via [GitHub Actions](.github/workflows/ci.yml)
 
 ## License
 

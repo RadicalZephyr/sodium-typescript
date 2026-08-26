@@ -579,7 +579,7 @@ test('should test defer/split memory cycle', done => {
     sl = new StreamLoop<number>();
     sl.loop(Operational.defer(sl));
   });
-  let kill = sl.listen(() => {});
+  const kill = sl.listen(() => {});
   kill();
   done();
 });

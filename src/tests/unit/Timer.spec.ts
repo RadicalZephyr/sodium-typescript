@@ -1,16 +1,14 @@
 
 import {
-  Stream,
   StreamSink,
   CellLoop,
   TimerSystem,
   SecondsTimerSystem,
   Transaction,
-  Unit,
-  getTotalRegistrations
+  Unit
 } from "../../lib/Lib";
 
-const timeout: number = 30000;
+const timeout = 30000;
 
 test('should test Timer', (done) => {
   function periodic(sys: TimerSystem, period: number) {
@@ -24,16 +22,14 @@ test('should test Timer', (done) => {
   }
 
   function ticker(done: () => void) {
-    let sTick: Stream<number> = null;
     const sys = new SecondsTimerSystem(),
       time = sys.time,
       sMain = new StreamSink<Unit>(),
       kill = Transaction.run(() => {
-        const t0 = time.sample(),
-          kill1 = periodic(sys, 1).listen(t => {
+        const kill1 = periodic(sys, 1).listen(() => {
             //console.log((t - t0).toFixed(3) + " timer");
           }),
-          kill2 = sMain.snapshot1(time).listen(t => {
+          kill2 = sMain.snapshot1(time).listen(() => {
             //console.log((t - t0).toFixed(3) + " main");
           });
         return () => { kill1(); kill2(); };

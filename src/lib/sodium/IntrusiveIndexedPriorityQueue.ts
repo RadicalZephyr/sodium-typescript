@@ -21,13 +21,13 @@ export class IntrusiveIndexedPriorityQueue<
     head: null,
     tail: null,
   };
-  private minRank: number = 0;
-  maxRank: number = -1;
+  private minRank = 0;
+  maxRank = -1;
 
   private checkQueue() {
     for (let i = 0; i < this.entries.length; ++i) {
-      let expectedPqRank = i;
-      let e = this.entries[i];
+      const expectedPqRank = i;
+      const e = this.entries[i];
       if (e == undefined) {
         continue;
       }
@@ -113,7 +113,7 @@ export class IntrusiveIndexedPriorityQueue<
         this.minRank = 0;
         this.maxRank = -1;
         if (this.last.head != null) {
-          let result = this.last.head;
+          const result = this.last.head;
           this.remove(result);
           return result;
         }
@@ -127,7 +127,7 @@ export class IntrusiveIndexedPriorityQueue<
         this.minRank++;
         continue;
       }
-      let result = entry.head;
+      const result = entry.head;
       this.remove(result);
       while (true) {
         entry = this.entries[this.minRank];
@@ -144,7 +144,7 @@ export class IntrusiveIndexedPriorityQueue<
       }
       if (SANITY_CHECKS) {
         // sanity check, find it there is something else with a smaller rank
-        for (let entry of this.entries) {
+        for (const entry of this.entries) {
           if (entry != undefined) {
             let at = entry.head;
             while (at != null) {

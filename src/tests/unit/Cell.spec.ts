@@ -53,7 +53,7 @@ test('cellLiftArray', () => {
         }, [c1,c2,c3]))
         .map(cas => Cell.liftArray(cas))
     );
-  let kill = c.listen(x => out.push(x));
+  const kill = c.listen(x => out.push(x));
   ss1.send(1);
   ss1.send(2);
   ss1.send(3);
@@ -76,17 +76,17 @@ test('cellTracking', () => {
   const ss = new StreamSink<Stream<number>>();
   const ss1 = new StreamSink<number>();
   const ss2 = new StreamSink<number>();
-  let s1 = ss1.collect(0, (a,b) => new Tuple2(a + b, a + b));
-  let s2 = ss2.collect(1, (a,b) => new Tuple2(a * b, a * b));
-  let ca =
+  const s1 = ss1.collect(0, (a,b) => new Tuple2(a + b, a + b));
+  const s2 = ss2.collect(1, (a,b) => new Tuple2(a * b, a * b));
+  const ca =
     ss
       .map(s => new A(s.accum(0, (a,b) => a + b), s.accum(1, (a,b) => a * b)))
       .hold(new A(new Cell(9), new Cell(9)))
       .tracking(a => [a.c1, a.c2]);
-  let c1 = Cell.switchC(ca.map(a => a.c1));
-  let c2 = Cell.switchC(ca.map(a => a.c2));
-  let c3 = c1.lift(c2, (a, b) => a - b);
-  let kill = c3.listen(a => out.push(a));
+  const c1 = Cell.switchC(ca.map(a => a.c1));
+  const c2 = Cell.switchC(ca.map(a => a.c2));
+  const c3 = c1.lift(c2, (a, b) => a - b);
+  const kill = c3.listen(a => out.push(a));
   ss.send(s1);
   ss1.send(1);
   ss2.send(2);
@@ -102,24 +102,24 @@ test('cellTracking', () => {
 });
 
 test('cell lift work load', done => {
-  let lines = [
+  const lines = [
     "Work it harder",
     "Make it better",
     "Do it faster",
     "Makes us stronger"
   ];
   let idx = 0;
-  let c1 = new CellSink(0);
-  let c2 = new CellSink(0);
-  let c3 = new CellSink(0);
-  let c4 = new CellSink(0);
-  let out: string[] = [];
-  let c = c1.lift4(c2, c3, c4, (x1, x2, x3, x4) => {
+  const c1 = new CellSink(0);
+  const c2 = new CellSink(0);
+  const c3 = new CellSink(0);
+  const c4 = new CellSink(0);
+  const out: string[] = [];
+  const c = c1.lift4(c2, c3, c4, (x1, x2, x3, x4) => {
     out.push(lines[idx]);
     idx = (idx + 1) % lines.length;
     return x1 + x2 + x3 + x4;
   });
-  let kill = c.listen(() => {});
+  const kill = c.listen(() => {});
   Transaction.run(() => {
     c1.send(1);
     c2.send(2);

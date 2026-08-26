@@ -1,12 +1,7 @@
 
 import {
-  lambda1,
   StreamSink,
-  StreamLoop,
-  CellSink,
   Transaction,
-  Tuple2,
-  Operational,
   Cell,
   CellLoop,
   getTotalRegistrations

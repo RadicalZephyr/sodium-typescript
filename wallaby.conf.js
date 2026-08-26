@@ -1,6 +1,4 @@
-module.exports = function (wallaby) {
-  var path = require('path');
-
+module.exports = function () {
   return {
     files: [
       'src/**/*.ts?(x)',
