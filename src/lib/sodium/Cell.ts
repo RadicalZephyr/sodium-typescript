@@ -13,6 +13,22 @@ import { Stream, StreamWithSend } from "./Stream";
 import { Operational } from "./Operational";
 import { Tuple2 } from "./Tuple2";
 
+/**
+ * Flag recording whether a cell has an update pending in the current transaction.
+ * <p>
+ * This is tracked explicitly rather than by testing valueUpdate against null, because
+ * a stream is allowed to fire null as a legitimate value.
+ */
+const valueUpdatePresent : unique symbol = Symbol.for("nz.sodium.valueUpdatePresent");
+
+/**
+ * Private sentinel used by {@link Cell#calm} to mark "the value did not change".
+ * <p>
+ * It is a symbol that is not exported and not registered in the global symbol
+ * registry, so it can never collide with a value held by a cell.
+ */
+const calmNoChange = Symbol("nz.sodium.calm.noChange");
+
 class LazySample<A> {
     constructor(cell : Cell<A>) {
         this.cell = cell;
@@ -34,7 +50,7 @@ export class Cell<A> {
 	private str : Stream<A>;
 	protected value : A;
 	protected valueUpdate : A;
-	private cleanup : () => void;
+	protected [valueUpdatePresent] : boolean = false;
 	protected lazyInitValue : Lazy<A>;  // Used by LazyCell
 	private vertex : Vertex;
 
@@ -55,11 +71,13 @@ export class Cell<A> {
                 str.getVertex__(),
                 () => {
                     return str.listen_(me.vertex, (a : A) => {
-                        if (me.valueUpdate == null) {
+                        if (!me[valueUpdatePresent]) {
+                            me[valueUpdatePresent] = true;
                             Transaction.currentTransaction.last(() => {
                                 me.value = me.valueUpdate;
                                 me.lazyInitValue = null;
                                 me.valueUpdate = null;
+                                me[valueUpdatePresent] = false;
                             });
                         }
                         me.valueUpdate = a;
@@ -132,7 +150,7 @@ export class Cell<A> {
         const me = this,
             s = new LazySample<A>(me);
         Transaction.currentTransaction.sample(() => {
-            s.value = me.valueUpdate != null ? me.valueUpdate : me.sampleNoTrans__();
+            s.value = me[valueUpdatePresent] ? me.valueUpdate : me.sampleNoTrans__();
             s.hasValue = true;
             s.cell = null;
         });
@@ -474,17 +492,18 @@ export class Cell<A> {
             .updates(this)
             .collectLazy(
                 this.sampleLazy(),
-                (newValue, oldValue) => {
-                    let result: A;
+                (newValue : A, oldValue : A) => {
+                    let result: A | typeof calmNoChange;
                     if (eq(newValue, oldValue)) {
-                        result = null;
+                        result = calmNoChange;
                     } else {
                         result = newValue;
                     }
                     return new Tuple2(result, newValue);
                 }
             )
-            .filterNotNull()
+            .filter(a => a !== calmNoChange)
+            .map(a => <A>a)
             .holdLazy(this.sampleLazy());
     }
 

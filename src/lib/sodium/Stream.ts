@@ -509,8 +509,7 @@ export class Stream<A> {
     listen_(target : Vertex,
             h : (a : A) => void,
             suppressEarlierFirings : boolean) : () => void {
-        if (this.vertex.register(target))
-            Transaction.currentTransaction.requestRegen();
+        this.vertex.register(target);
         const listener = new Listener<A>(h, target);
         this.listeners.push(listener);
         if (!suppressEarlierFirings && this.firings.length != 0) {

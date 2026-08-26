@@ -53,21 +53,15 @@ export class Transaction
 
   private static prioritizedQ = new IntrusiveIndexedPriorityQueue<Entry>();
 
-  private entries: Set<Entry> = new Set<Entry>();
   private sampleQ: Array<() => void> = [];
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
   private static collectCyclesAtEnd: boolean = false;
 
-  requestRegen() {
-    // no longer required
-  }
-
   prioritized(target: Vertex, action: () => void): void
   {
     const e = new Entry(target, action);
     Transaction.prioritizedQ.enqueue(e);
-    this.entries.add(e);
   }
 
   sample(h: () => void): void
@@ -130,7 +124,6 @@ export class Transaction
         this.checkRegen();
         if (Transaction.prioritizedQ.isEmpty()) break;
         const e = Transaction.prioritizedQ.dequeue();
-        this.entries.delete(e);
         e.action();
         e.dispose();
       }
