@@ -1,14 +1,13 @@
-import { Lambda1, Lambda1_deps, Lambda1_toFunction,
+import { Lambda1, Lambda1_toFunction,
          Lambda2, Lambda2_deps, Lambda2_toFunction,
          Lambda3, Lambda3_deps, Lambda3_toFunction,
          Lambda4, Lambda4_deps, Lambda4_toFunction,
          Lambda5, Lambda5_deps, Lambda5_toFunction,
          Lambda6, Lambda6_deps, Lambda6_toFunction,
-         toSources, lambda1 } from "./Lambda";
+         toSources } from "./Lambda";
 import { Source, Vertex } from "./Vertex";
 import { Transaction } from "./Transaction";
 import { Lazy } from "./Lazy";
-import { Listener } from "./Listener";
 import { Stream, StreamWithSend } from "./Stream";
 import { Operational } from "./Operational";
 import { Tuple2 } from "./Tuple2";
@@ -34,25 +33,24 @@ class LazySample<A> {
         this.cell = cell;
     }
     cell : Cell<A>;
-    hasValue : boolean = false;
+    hasValue = false;
     value : A = null;
 }
 
 class ApplyState<A,B> {
-    constructor() {}
     f : (a : A) => B = null;
-    f_present : boolean = false;
+    f_present = false;
     a : A = null;
-    a_present : boolean = false;
+    a_present = false;
 }
 
 export class Cell<A> {
-	private str : Stream<A>;
-	protected value : A;
-	protected valueUpdate : A;
-	protected [valueUpdatePresent] : boolean = false;
-	protected lazyInitValue : Lazy<A>;  // Used by LazyCell
-	private vertex : Vertex;
+    private str : Stream<A>;
+    protected value : A;
+    protected valueUpdate : A;
+    protected [valueUpdatePresent] = false;
+    protected lazyInitValue : Lazy<A>;  // Used by LazyCell
+    private vertex : Vertex;
 
     constructor(initValue : A, str? : Stream<A>) {
         this.value = initValue;
@@ -92,7 +90,7 @@ export class Cell<A> {
         // A new temporary vertex null is constructed here as a performance work-around to avoid
         // having too many children in Vertex.NULL as a deregister operation is O(n^2) where
         // n is the number of children in the vertex.
-        let tmpVertexNULL = new Vertex("Cell::setStream", 1e12, []);
+        const tmpVertexNULL = new Vertex("Cell::setStream", 1e12, []);
         this.vertex.register(tmpVertexNULL);
         Transaction.currentTransaction.last(() => {
             this.vertex.deregister(tmpVertexNULL);
@@ -168,34 +166,33 @@ export class Cell<A> {
      * @param f Function to apply to convert the values. It must be <em>referentially transparent</em>.
      */
     map<B>(f : ((a : A) => B) | Lambda1<A,B>) : Cell<B> {
-        const c = this;
         return Transaction.run(() =>
-            Operational.updates(c).map(f).holdLazy(c.sampleLazy().map(Lambda1_toFunction(f)))
+            Operational.updates(this).map(f).holdLazy(this.sampleLazy().map(Lambda1_toFunction(f)))
         );
     }
 
-	/**
-	 * Lift a binary function into cells, so the returned Cell always reflects the specified
-	 * function applied to the input cells' values.
-	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
-	 */
-	lift<B,C>(b : Cell<B>,
-	          fn0 : ((a : A, b : B) => C) |
-	                Lambda2<A,B,C>) : Cell<C> {
+    /**
+     * Lift a binary function into cells, so the returned Cell always reflects the specified
+     * function applied to the input cells' values.
+     * @param fn Function to apply. It must be <em>referentially transparent</em>.
+     */
+    lift<B,C>(b : Cell<B>,
+              fn0 : ((a : A, b : B) => C) |
+                    Lambda2<A,B,C>) : Cell<C> {
         const fn = Lambda2_toFunction(fn0),
             cf = this.map((aa : A) => (bb : B) => fn(aa, bb));
         return Cell.apply(cf, b,
             toSources(Lambda2_deps(fn0)));
-	}
+    }
 
-	/**
-	 * Lift a ternary function into cells, so the returned Cell always reflects the specified
-	 * function applied to the input cells' values.
-	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
-	 */
-	lift3<B,C,D>(b : Cell<B>, c : Cell<C>,
-	             fn0 : ((a : A, b : B, c : C) => D) |
-	                   Lambda3<A,B,C,D>) : Cell<D> {
+    /**
+     * Lift a ternary function into cells, so the returned Cell always reflects the specified
+     * function applied to the input cells' values.
+     * @param fn Function to apply. It must be <em>referentially transparent</em>.
+     */
+    lift3<B,C,D>(b : Cell<B>, c : Cell<C>,
+                 fn0 : ((a : A, b : B, c : C) => D) |
+                       Lambda3<A,B,C,D>) : Cell<D> {
         const fn = Lambda3_toFunction(fn0),
             mf : (aa : A) => (bb : B) => (cc : C) => D =
                  (aa : A) => (bb : B) => (cc : C) => fn(aa, bb, cc),
@@ -204,16 +201,16 @@ export class Cell<A> {
                    Cell.apply<B, (c : C) => D>(cf, b),
                    c,
                    toSources(Lambda3_deps(fn0)));
-	}
+    }
 
-	/**
-	 * Lift a quaternary function into cells, so the returned Cell always reflects the specified
-	 * function applied to the input cells' values.
-	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
-	 */
-	lift4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
-	               fn0 : ((a : A, b : B, c : C, d : D) => E) |
-	                     Lambda4<A,B,C,D,E>) : Cell<E> {
+    /**
+     * Lift a quaternary function into cells, so the returned Cell always reflects the specified
+     * function applied to the input cells' values.
+     * @param fn Function to apply. It must be <em>referentially transparent</em>.
+     */
+    lift4<B,C,D,E>(b : Cell<B>, c : Cell<C>, d : Cell<D>,
+                   fn0 : ((a : A, b : B, c : C, d : D) => E) |
+                         Lambda4<A,B,C,D,E>) : Cell<E> {
         const fn = Lambda4_toFunction(fn0),
             mf : (aa : A) => (bb : B) => (cc : C) => (dd : D) => E =
                  (aa : A) => (bb : B) => (cc : C) => (dd : D) => fn(aa, bb, cc, dd),
@@ -224,16 +221,16 @@ export class Cell<A> {
                        c),
                    d,
                    toSources(Lambda4_deps(fn0)));
-	}
+    }
 
-	/**
-	 * Lift a 5-argument function into cells, so the returned Cell always reflects the specified
-	 * function applied to the input cells' values.
-	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
-	 */
-	lift5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
-	                 fn0 : ((a : A, b : B, c : C, d : D, e : E) => F) |
-	                       Lambda5<A,B,C,D,E,F>) : Cell<F> {
+    /**
+     * Lift a 5-argument function into cells, so the returned Cell always reflects the specified
+     * function applied to the input cells' values.
+     * @param fn Function to apply. It must be <em>referentially transparent</em>.
+     */
+    lift5<B,C,D,E,F>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>,
+                     fn0 : ((a : A, b : B, c : C, d : D, e : E) => F) |
+                           Lambda5<A,B,C,D,E,F>) : Cell<F> {
         const fn = Lambda5_toFunction(fn0),
             mf : (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => F =
                  (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => fn(aa, bb, cc, dd, ee),
@@ -246,16 +243,16 @@ export class Cell<A> {
                        d),
                    e,
                    toSources(Lambda5_deps(fn0)));
-	}
+    }
 
-	/**
-	 * Lift a 6-argument function into cells, so the returned Cell always reflects the specified
-	 * function applied to the input cells' values.
-	 * @param fn Function to apply. It must be <em>referentially transparent</em>.
-	 */
-	lift6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
-	                   fn0 : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) |
-	                         Lambda6<A,B,C,D,E,F,G>) : Cell<G> {
+    /**
+     * Lift a 6-argument function into cells, so the returned Cell always reflects the specified
+     * function applied to the input cells' values.
+     * @param fn Function to apply. It must be <em>referentially transparent</em>.
+     */
+    lift6<B,C,D,E,F,G>(b : Cell<B>, c : Cell<C>, d : Cell<D>, e : Cell<E>, f : Cell<F>,
+                       fn0 : ((a : A, b : B, c : C, d : D, e : E, f : F) => G) |
+                             Lambda6<A,B,C,D,E,F,G>) : Cell<G> {
         const fn = Lambda6_toFunction(fn0),
             mf : (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => (ff : F) => G =
                  (aa : A) => (bb : B) => (cc : C) => (dd : D) => (ee : E) => (ff : F) => fn(aa, bb, cc, dd, ee, ff),
@@ -278,23 +275,23 @@ export class Cell<A> {
      */
     public tracking(extractor: (a: A) => (Stream<any>|Cell<any>)[]) : Cell<A> {
         const out = new StreamWithSend<A>(null);
-        let vertex = new Vertex("tracking", 0, [
+        const vertex = new Vertex("tracking", 0, [
             new Source(
                 this.vertex,
                 () => {
                     let cleanup2: ()=>void = () => {};
-                    let updateDeps =
+                    const updateDeps =
                         (a: A) => {
-                            let lastCleanups2 = cleanup2;
-                            let deps = extractor(a).map(dep => dep.getVertex__());
+                            const lastCleanups2 = cleanup2;
+                            const deps = extractor(a).map(dep => dep.getVertex__());
                             for (let i = 0; i < deps.length; ++i) {
-                                let dep = deps[i];
+                                const dep = deps[i];
                                 vertex.childrn.push(dep);
                                 dep.increment(Vertex.NULL);
                             }
                             cleanup2 = () => {
                                 for (let i = 0; i < deps.length; ++i) {
-                                    let dep = deps[i];
+                                    const dep = deps[i];
                                     for (let j = 0; j < vertex.childrn.length; ++j) {
                                         if (vertex.childrn[j] === dep) {
                                             vertex.childrn.splice(j, 1);
@@ -307,7 +304,7 @@ export class Cell<A> {
                             lastCleanups2();
                         };
                     updateDeps(this.sample());
-                    var cleanup1 =
+                    const cleanup1 =
                         Operational.updates(this).listen_(
                             vertex,
                             (a: A) => {
@@ -340,7 +337,7 @@ export class Cell<A> {
         } else if (toExc - fromInc == 1) {
             return ca[fromInc].map(a => [a]);
         } else {
-            let pivot = Math.floor((fromInc + toExc) / 2);
+            const pivot = Math.floor((fromInc + toExc) / 2);
             // the thunk boxing/unboxing here is a performance hack for lift when there are simutaneous changing cells.
             return Cell._liftArray(ca, fromInc, pivot).lift(
                     Cell._liftArray(ca, pivot, toExc),
@@ -350,14 +347,14 @@ export class Cell<A> {
         }
     }
 
-	/**
-	 * Apply a value inside a cell to a function inside a cell. This is the
-	 * primitive for all function lifting.
-	 */
-	static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>, sources? : Source[]) : Cell<B> {
-    	return Transaction.run(() => {
+    /**
+     * Apply a value inside a cell to a function inside a cell. This is the
+     * primitive for all function lifting.
+     */
+    static apply<A,B>(cf : Cell<(a : A) => B>, ca : Cell<A>, sources? : Source[]) : Cell<B> {
+        return Transaction.run(() => {
             let pumping = false;
-    	    const state = new ApplyState<A,B>(),
+            const state = new ApplyState<A,B>(),
                 out = new StreamWithSend<B>(),
                 cf_updates = Operational.updates(cf),
                 ca_updates = Operational.updates(ca),
@@ -367,8 +364,8 @@ export class Cell<A> {
                     }
                     pumping = true;
                     Transaction.currentTransaction.prioritized(out.getVertex__(), () => {
-                        let f = state.f_present ? state.f : cf.sampleNoTrans__();
-                        let a = state.a_present ? state.a : ca.sampleNoTrans__();
+                        const f = state.f_present ? state.f : cf.sampleNoTrans__();
+                        const a = state.a_present ? state.a : ca.sampleNoTrans__();
                         out.send_(f(a));
                         pumping = false;
                     });
@@ -400,13 +397,13 @@ export class Cell<A> {
                     cf.sampleNoTrans__()(ca.sampleNoTrans__())
                 ));
         });
-	}
+    }
 
-	/**
-	 * Unwrap a cell inside another cell to give a time-varying cell implementation.
-	 */
+    /**
+     * Unwrap a cell inside another cell to give a time-varying cell implementation.
+     */
     static switchC<A>(cca : Cell<Cell<A>>) : Cell<A> {
-	    return Transaction.run(() => {
+        return Transaction.run(() => {
             const za = cca.sampleLazy().map((ba : Cell<A>) => ba.sample()),
                 out = new StreamWithSend<A>();
             let outValue: A = null;
@@ -433,7 +430,7 @@ export class Cell<A> {
                     const kill1 = cca_value.listen_(out.getVertex__(), (ca : Cell<A>) => {
                         last_ca = ca;
                         // Connect before disconnect to avoid memory bounce, when switching to same cell twice.
-                        let nextKill2 = Operational.value(ca).listen_(out.getVertex__(),
+                        const nextKill2 = Operational.value(ca).listen_(out.getVertex__(),
                             (a : A) => {
                                 outValue = a;
                                 pump();
@@ -454,13 +451,13 @@ export class Cell<A> {
             out.setVertex__(new Vertex("switchC", 0, [src]));
             return out.holdLazy(za);
         });
-	}
+    }
 
-	/**
-	 * Unwrap a stream inside a cell to give a time-varying stream implementation.
-	 */
-	static switchS<A>(csa : Cell<Stream<A>>) : Stream<A> {
-	    return Transaction.run(() => {
+    /**
+     * Unwrap a stream inside a cell to give a time-varying stream implementation.
+     */
+    static switchS<A>(csa : Cell<Stream<A>>) : Stream<A> {
+        return Transaction.run(() => {
             const out = new StreamWithSend<A>(),
                   h2 = (a : A) => {
                           out.send_(a);
@@ -471,16 +468,16 @@ export class Cell<A> {
                           let kill2 = csa.sampleNoTrans__().listen_(out.getVertex__(), h2, false);
                           const kill1 = csa.getStream__().listen_(out.getVertex__(), (sa : Stream<A>) => {
                               // Connect before disconnect to avoid memory bounce, when switching to same stream twice.
-                              let nextKill2 = sa.listen_(out.getVertex__(), h2, true);
+                              const nextKill2 = sa.listen_(out.getVertex__(), h2, true);
                               kill2();
                               kill2 = nextKill2;
                           }, false);
                           return () => { kill1(); kill2(); };
                       }
                   );
-	        out.setVertex__(new Vertex("switchS", 0, [src]));
-	        return out;
-	    });
+            out.setVertex__(new Vertex("switchS", 0, [src]));
+            return out;
+        });
     }
 
     /**
@@ -515,17 +512,17 @@ export class Cell<A> {
         return this.calm((a, b) => a === b);
     }
 
-	/**
-	 * Listen for updates to the value of this cell. This is the observer pattern. The
-	 * returned {@link Listener} has a {@link Listener#unlisten()} method to cause the
-	 * listener to be removed. This is an OPERATIONAL mechanism is for interfacing between
-	 * the world of I/O and for FRP.
-	 * @param h The handler to execute when there's a new value.
-	 *   You should make no assumptions about what thread you are called on, and the
-	 *   handler should not block. You are not allowed to use {@link CellSink#send(Object)}
-	 *   or {@link StreamSink#send(Object)} in the handler.
-	 *   An exception will be thrown, because you are not meant to use this to create
-	 *   your own primitives.
+    /**
+     * Listen for updates to the value of this cell. This is the observer pattern. The
+     * returned {@link Listener} has a {@link Listener#unlisten()} method to cause the
+     * listener to be removed. This is an OPERATIONAL mechanism is for interfacing between
+     * the world of I/O and for FRP.
+     * @param h The handler to execute when there's a new value.
+     *   You should make no assumptions about what thread you are called on, and the
+     *   handler should not block. You are not allowed to use {@link CellSink#send(Object)}
+     *   or {@link StreamSink#send(Object)} in the handler.
+     *   An exception will be thrown, because you are not meant to use this to create
+     *   your own primitives.
      */
     listen(h : (a : A) => void) : () => void {
         return Transaction.run(() => {

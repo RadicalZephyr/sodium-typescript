@@ -1,8 +1,6 @@
-import { Lambda1, Lambda1_deps, Lambda1_toFunction,
-         Lambda2, Lambda2_deps, Lambda2_toFunction } from "./Lambda";
+import { Lambda2 } from "./Lambda";
 import { Cell } from "./Cell";
 import { StreamSink } from "./StreamSink";
-import { Transaction } from "./Transaction";
 
 /**
  * A cell that allows values to be pushed into it, acting as an interface between the
@@ -17,7 +15,7 @@ export class CellSink<A> extends Cell<A> {
      * If the function is not supplied, then an exception will be thrown in this case.
      */
     constructor(initValue : A, f? : ((l : A, r : A) => A) | Lambda2<A, A, A>) {
-    	super(initValue, new StreamSink<A>(f));
+        super(initValue, new StreamSink<A>(f));
     }
 
     /**

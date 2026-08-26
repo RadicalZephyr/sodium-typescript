@@ -1,5 +1,4 @@
 import {Vertex} from './Vertex';
-import * as Collections from 'typescript-collections';
 import { IntrusiveIndexedPriorityQueue } from "./IntrusiveIndexedPriorityQueue";
 
 export class Entry
@@ -16,7 +15,7 @@ export class Entry
     rank.entries.push(this);
   }
 
-  private static nextSeq: number = 0;
+  private static nextSeq = 0;
   rank: Vertex;
   action: () => void;
   seq: number;
@@ -44,11 +43,9 @@ export class Transaction
 {
   public static currentTransaction: Transaction = null;
   private static onStartHooks: (() => void)[] = [];
-  private static runningOnStartHooks: boolean = false;
+  private static runningOnStartHooks = false;
 
-  constructor() {}
-
-  inCallback: number = 0;
+  inCallback = 0;
   rerankEntriesSet = new Set<Entry>();
 
   private static prioritizedQ = new IntrusiveIndexedPriorityQueue<Entry>();
@@ -56,7 +53,7 @@ export class Transaction
   private sampleQ: Array<() => void> = [];
   private lastQ: Array<() => void> = [];
   private postQ: Array<() => void> = null;
-  private static collectCyclesAtEnd: boolean = false;
+  private static collectCyclesAtEnd = false;
 
   prioritized(target: Vertex, action: () => void): void
   {
@@ -104,7 +101,7 @@ export class Transaction
   // ranks, then we need to re-generate it to make sure it's up-to-date.
   private checkRegen(): void
   {
-    for (let entry of this.rerankEntriesSet) {
+    for (const entry of this.rerankEntriesSet) {
       Transaction.prioritizedQ.changeRank(entry, entry.rank.rank);
     }
     this.rerankEntriesSet.clear();

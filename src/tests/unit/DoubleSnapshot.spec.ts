@@ -1,16 +1,8 @@
 
 
 import {
-    lambda1,
     StreamSink,
-    CellSink,
-    Transaction,
-    Tuple2,
-    Operational,
-    Cell,
-    CellLoop,
-    getTotalRegistrations,
-    lambda2
+    getTotalRegistrations
 } from '../../lib/Lib';
 
 /*

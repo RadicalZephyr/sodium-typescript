@@ -1,7 +1,6 @@
 import { Vertex, Source } from "./Vertex";
 import * as Collections from 'typescript-collections';
 import { Stream, StreamWithSend } from "./Stream";
-import { StreamSink } from "./StreamSink";
 import { Cell } from "./Cell";
 import { CellSink } from "./CellSink";
 import { Transaction } from "./Transaction";
@@ -22,7 +21,7 @@ export abstract class TimerSystemImpl {
     abstract now() : number;
 }
 
-let nextSeq : number = 0;
+let nextSeq = 0;
 
 class Event {
     constructor(t : number, sAlarm : StreamWithSend<number>) {
@@ -43,7 +42,7 @@ export class TimerSystem {
             const timeSnk = new CellSink<number>(impl.now());
             this.time = timeSnk;
             // A dummy listener to time to keep it alive even when there are no other listeners.
-            this.time.listen((t : number) => { });
+            this.time.listen(() => { });
             Transaction.onStart(() => {
                 // Ensure the time is always increasing from the FRP's point of view.
                 const t = this.tMinimum = Math.max(this.tMinimum, impl.now());
@@ -51,7 +50,7 @@ export class TimerSystem {
                 while (true) {
                     let ev : Event = null;
                     if (!this.eventQueue.isEmpty()) {
-                        let mev = this.eventQueue.minimum();
+                        const mev = this.eventQueue.minimum();
                         if (mev.t <= t) {
                             ev = mev;
                             // TO DO: Detect infinite loops!
@@ -93,9 +92,9 @@ export class TimerSystem {
     at(tAlarm : Cell<number>) : Stream<number> {
         let current : Event = null,
             cancelCurrent : () => void = null,
-            active : boolean = false,
+            active = false,
             tAl : number = null,
-            sampled : boolean = false;
+            sampled = false;
         const sAlarm = new StreamWithSend<number>(null),
             updateTimer = () => {
                 if (cancelCurrent !== null) {

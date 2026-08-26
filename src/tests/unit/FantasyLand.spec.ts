@@ -9,7 +9,7 @@
 
 import * as jsc from 'jsverify';
 import { S} from "../test-utils/Sanctuary";
-import { Cell, StreamSink, Stream, Transaction} from '../../lib/Lib';
+import { Cell, StreamSink, Transaction} from '../../lib/Lib';
 import * as laws from 'fantasy-laws';
 import { testSequence } from '../test-utils/Sequence';
 
@@ -26,12 +26,15 @@ function CellEq<T>(a: Cell<T>, b: Cell<T>) {
   return a.sample() === b.sample();
 }
 
+// Fixtures for the law tests that are still commented out below.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CellHead(x: string): Cell<string> {
   const head = S.head(x);
 
   return new Cell<string>(head.isNothing ? "" : head.value);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CellParseInt(radix: number): ((x: number) => Cell<number>) {
   return function (x: number) {
     const m = S.parseInt(radix)(x);

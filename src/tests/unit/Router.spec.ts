@@ -1,5 +1,4 @@
 import {
-    Cell,
     Router,
     StreamSink,
     getTotalRegistrations
@@ -12,13 +11,13 @@ afterEach(() => {
 });
 
 test('should test Router', (done) => {
-    let out: string[] = [];
-    let sa = new StreamSink<number[]>();
-    let router = new Router(sa, x => x);
-    let sb = router.filterMatches(1).mapTo("a");
-    let sc = router.filterMatches(2).mapTo("b");
-    let sd = router.filterMatches(3).mapTo("c");
-    let kill = sb.merge(sc, (x,y) => x+y).merge(sd, (x,y) => x+y).listen(x => out.push(x));
+    const out: string[] = [];
+    const sa = new StreamSink<number[]>();
+    const router = new Router(sa, x => x);
+    const sb = router.filterMatches(1).mapTo("a");
+    const sc = router.filterMatches(2).mapTo("b");
+    const sd = router.filterMatches(3).mapTo("c");
+    const kill = sb.merge(sc, (x,y) => x+y).merge(sd, (x,y) => x+y).listen(x => out.push(x));
     sa.send([1]);
     sa.send([2]);
     sa.send([3]);

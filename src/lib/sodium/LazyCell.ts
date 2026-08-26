@@ -12,7 +12,7 @@ import { Transaction } from "./Transaction";
 const forced : unique symbol = Symbol.for("nz.sodium.forced");
 
 export class LazyCell<A> extends Cell<A> {
-    private [forced] : boolean = false;
+    private [forced] = false;
 
     constructor(lazyInitValue : Lazy<A>, str? : Stream<A>) {
         super(null, null);

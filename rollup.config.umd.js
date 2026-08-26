@@ -1,7 +1,7 @@
 import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 //import {uglify} from 'rollup-plugin-uglify';
-import { minify } from 'uglify-es';
+//import { minify } from 'uglify-es';
 
 export default [
     {

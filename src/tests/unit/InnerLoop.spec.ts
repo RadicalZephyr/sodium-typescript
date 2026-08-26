@@ -3,14 +3,10 @@
 import {
     lambda1,
     StreamSink,
-    CellSink,
     Transaction,
-    Tuple2,
-    Operational,
     Cell,
     CellLoop,
-    getTotalRegistrations,
-    lambda2
+    getTotalRegistrations
 } from '../../lib/Lib';
 
 afterEach(() => {
@@ -101,7 +97,7 @@ const runTest = (done: () => void) => {
 
     //This is just for the sake of debugging
     unlisteners.push(
-        cItems.listen(items => {
+        cItems.listen(() => {
             //console.log(items);
         })
     );

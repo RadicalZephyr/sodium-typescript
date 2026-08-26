@@ -1,4 +1,4 @@
-import { Source, Vertex } from "./Vertex";
+import { Vertex } from "./Vertex";
 
 export class Listener<A> {
     constructor(h : (a : A) => void, target : Vertex) {

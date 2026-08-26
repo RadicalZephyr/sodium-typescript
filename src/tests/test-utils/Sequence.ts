@@ -1,19 +1,8 @@
 
 import {
-  lambda1,
-  lambda2,
   StreamSink,
-  StreamLoop,
-  CellSink,
-  Transaction,
-  Tuple2,
-  Operational,
-  Cell,
-  CellLoop,
-  getTotalRegistrations
+  Cell
 } from '../../lib/Lib';
-
-import { S } from "../test-utils/Sanctuary";
 
 type TestSequencer = <A>(aCells:Array<Cell<A>>) => Cell<Array<A>>;
 
