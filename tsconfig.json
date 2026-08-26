@@ -10,6 +10,11 @@
 		"declarationDir": "dist/typings",
 		"moduleResolution": "node",
 		"diagnostics": true,
+		// Only ambient types the library itself needs; keeps unrelated @types
+		// packages pulled in by dev tooling out of the compilation.
+		"types": [
+			"node"
+		],
 		"lib": [
 			"ESNext",
 		]
