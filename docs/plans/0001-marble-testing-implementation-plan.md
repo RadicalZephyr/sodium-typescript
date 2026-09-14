@@ -49,6 +49,22 @@ array. Three properties it has to keep:
 2. Overdelivery fails — extras cannot be silently dropped.
 3. A leaked listener fails the test that leaked it, not the next one.
 
+## Phase C0 — toolchain bump (first, not last)
+
+Decided in ADR-0004: `sodium-typescript` moves to TypeScript 5, jest 29 and
+ts-jest 29 before the helper is built, so the helper is never shaped around a
+TypeScript 3 constraint.
+
+Done in two stages, each gated on the measured baseline:
+
+1. **Test toolchain** — typescript, jest, ts-jest, `@types/*`. Gate: 61 tests
+   green.
+2. **Build toolchain** — rollup and its plugins; `rollup-plugin-typescript2`
+   0.17 cannot drive TypeScript 5. Gate: `npm run build` exits 0 and still emits
+   CJS, ESM, UMD and typings.
+
+**Exit:** both gates met, with the prototype not yet started.
+
 ## Phase A — Swirly fork
 
 - Add the `!` throw row: a new `rowKind` on `BaseGridRow`, a parser ahead of
@@ -59,6 +75,10 @@ array. Three properties it has to keep:
 `!` row.
 
 ## Phase B — helper library
+
+Decided in ADR-0004: built inside `sodium-typescript` under
+`src/tests/test-utils/marbles/`, structured so extraction is a move — imports
+from `src/lib/Lib` only, nothing else under `src/tests/`.
 
 **B1 Recorder** — no parser needed, so this is unblocked by A and can start now.
 `Transcript`, `Recorder`, the `marbleTest` harness, setup transaction,
@@ -120,6 +140,10 @@ Virtual timer (ADR-0001's `TimerSystemImpl` seam) and trace-all-vertices
 - [ ] Name and create the helper repository
 - [ ] Settle the TS3/jest23 interop route
 
+**Phase C0 — toolchain bump**
+- [ ] typescript 5, jest 29, ts-jest 29, `@types/*` — 61 tests green
+- [ ] rollup and plugins — `npm run build` exits 0, all four outputs emitted
+
 **Phase A — swirly fork**
 - [ ] `!` throw row: type, parser, renderer
 - [ ] Publish `grid-mode`
@@ -148,9 +172,13 @@ Virtual timer (ADR-0001's `TimerSystemImpl` seam) and trace-all-vertices
 
 ## Risks
 
-- **Toolchain interop is the big one.** TypeScript 3 cannot read modern `.d.ts`;
-  jest 23 has no ESM. See ADR-0004's trade-offs for the three routes. Settle
-  before writing Phase B's build, not at integration.
+- **The toolchain bump is now the first risk, not a deferred one.** It touches
+  the build of a published library for reasons unrelated to marble diagrams, and
+  it churns all 61 tests before the helper exists to justify it. Mitigated by
+  doing it in two separately-gated stages against a measured baseline.
+- **Extraction leak.** The prototype lives inside `sodium-typescript` by
+  decision; if it reaches into other test helpers it stops being extractable.
+  Enforced by the import rule in ADR-0004.
 - **Transaction identity as a tick key.** Holding `Transaction` objects in a
   `Map` keeps them alive; use a `WeakMap` or clear per test.
 - **`last()` re-entrancy.** `Transaction.close()` clears `lastQ` after draining
@@ -163,11 +191,11 @@ Virtual timer (ADR-0001's `TimerSystemImpl` seam) and trace-all-vertices
 
 ## Open questions
 
-1. **Repository and name for the helper** — blocks Phase B's first commit.
-2. **Interop route** — ADR-0004.
-3. **Slot literal grammar** — JSON5-ish subset; must cover strings, numbers,
+1. **Repository and name for the helper** — no longer blocking, since the
+   prototype lives in this repository until extraction.
+2. **Slot literal grammar** — JSON5-ish subset; must cover strings, numbers,
    `null`, arrays.
-4. **How to spell `Unit`** in a slot.
-5. **`!` row rendering** in the fork.
-6. **Intra-transaction cross-row ordering** — decided: record it, do not assert
+3. **How to spell `Unit`** in a slot.
+4. **`!` row rendering** in the fork.
+5. **Intra-transaction cross-row ordering** — decided: record it, do not assert
    it by default.

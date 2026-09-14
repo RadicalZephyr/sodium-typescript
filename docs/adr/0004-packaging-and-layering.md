@@ -56,7 +56,16 @@ ts-jest 23. TypeScript 3 cannot read `.d.ts` files using syntax newer than
 itself, and jest 23 has no ESM support, so a naive publish of (2) is
 unconsumable by (3).
 
-Three ways out, in the order I would try them:
+**Decided: bump `sodium-typescript`'s toolchain first** (option 2 below).
+That makes the bump a prerequisite rather than a later cleanup, so it happens
+before the helper has proven itself and churns all 61 existing tests up front.
+The argument that won: the alternative constrains the helper's build
+permanently to satisfy a toolchain that is independently overdue for
+replacement, and discovering that constraint at integration is worse than
+paying it now. The gate is the measured baseline — 61 tests green in 14.4s, and
+`npm run build` exiting 0 with CJS, ESM, UMD and typings emitted.
+
+Three ways out, in the order I would have tried them:
 
 1. **(2) ships CJS plus conservative typings** — target ES2017/CJS, and either
    emit TS3-compatible declarations or ship hand-written ones. Keeps (3)
@@ -79,8 +88,15 @@ two parsers that must be kept honest by a test rather than by construction. The
 decision is to publish; the conformance corpus is still worth vendoring into (2)
 as a regression test against the published parser.
 
+**Decided: prototype the helper inside `sodium-typescript`, extract later.**
+This is the coupling this ADR argued against, taken deliberately for the tighter
+feedback loop of developing against the real library. The mitigation is to make
+extraction a move rather than a rewrite: the prototype lives in a directory that
+maps one-to-one onto the future package, imports from the library only through
+`src/lib/Lib`, and never imports anything else under `src/tests/`. If those
+three hold, extraction is `git mv` plus one import path.
+
 ## Open questions
 
 - Name and repository for (2).
 - Scope for the published fork.
-- Which interop route above; see the trade-off.
