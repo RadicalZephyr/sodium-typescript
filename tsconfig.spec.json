@@ -1,0 +1,17 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// jest runs CommonJS, so the tests need a different module target than
+		// the rollup build's "esnext".
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"declaration": false,
+		"sourceMap": true,
+		"types": ["jest", "node"]
+	},
+	// The root config compiles only the library entry point. Tests need the
+	// whole tree, so clear "files" and select it here instead.
+	"files": [],
+	"include": ["src/**/*.ts"]
+}

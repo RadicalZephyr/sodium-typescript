@@ -28,21 +28,26 @@
     "build:all": "npm-run-all build build:example",
     "clean": "rimraf ./dist",
     "build": "npm-run-all clean rollup:build:umd rollup:build typings:emit",
-    "typings:emit": "tsc --emitDeclarationOnly true",
+    "typings:emit": "tsc --emitDeclarationOnly --declaration --declarationDir dist/typings",
     "build:example": "npm-run-all clean:example _build:example",
     "_build:example": "cd example && npm run build",
     "clean:example": "cd example && npm run clean",
     "dev": "npm-run-all -s clean -p rollup:watch",
-    "rollup:build": "cross-env NODE_ENV=production rollup -c",
-    "rollup:build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.umd.js",
-    "rollup:watch": "cross-env NODE_ENV=production rollup -c -w",
+    "rollup:build": "cross-env NODE_ENV=production rollup -c rollup.config.mjs",
+    "rollup:build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.umd.mjs",
+    "rollup:watch": "cross-env NODE_ENV=production rollup -c rollup.config.mjs -w",
     "test": "jest",
     "test-single-thread": "jest --runInBand",
     "prepublishOnly": "npm run build"
   },
   "jest": {
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.spec.json"
+        }
+      ]
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
@@ -54,29 +59,26 @@
     ]
   },
   "devDependencies": {
-    "@types/jest": "23.3.1",
-    "@types/node": "^10.9.4",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.19.43",
     "cross-env": "^5.2.0",
     "fantasy-laws": "^1.1.0",
-    "jest": "23.5.0",
+    "jest": "^29.7.0",
     "jsverify": "^0.8.3",
     "live-server": "1.2.0",
-    "minify": "3.0.5",
     "npm-run-all": "4.1.3",
     "rimraf": "^2.6.2",
-    "rollup": "0.65.0",
-    "rollup-plugin-replace": "2.0.0",
-    "rollup-plugin-typescript2": "0.17.0",
-    "rollup-plugin-uglify": "5.0.2",
+    "rollup": "^4.63.2",
     "sanctuary": "0.15.0",
-    "ts-jest": "23.1.4",
+    "ts-jest": "^29.4.12",
     "ts-node": "7.0.1",
-    "tslib": "1.9.3",
-    "typescript": "^3.0.3",
-    "uglify-es": "3.3.10"
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "typescript-collections": "^1.3.2",
-    "sanctuary-type-classes": "^9.0.0"
+    "sanctuary-type-classes": "^9.0.0",
+    "typescript-collections": "^1.3.2"
   }
 }
