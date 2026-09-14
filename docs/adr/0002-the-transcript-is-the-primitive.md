@@ -79,6 +79,13 @@ changes to the library**.
   do this; the graph isn't reachable.
 - **Tests that don't want notation don't pay for it.** Asserting against a
   `Transcript` literal stays available and is better for table-driven cases.
+- **One transform, not zero.** ADR-0003 renders cell rows in the *sampled* view,
+  which is the recorded update view shifted by one column. So the diagram is a
+  serialization of the transcript plus one documented, uniform transform — not a
+  raw dump. The no-transform principle was in service of trustworthiness, and
+  here the shift buys it: the untransformed view is the one that disagrees with
+  Sodium's semantics and with every figure in the book. The shift is verified by
+  a property test against a probe-sampled recording of the same graph.
 
 ## Alternatives considered
 

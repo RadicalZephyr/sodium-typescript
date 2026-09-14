@@ -52,8 +52,15 @@ not foreclose a second axis.
   (ADR-0003) rather than a constructor flag.
 - **`|` and `#` lose their RxJS meanings.** Sodium streams never complete, and
   errors are not stream events — they are exceptions thrown out of `send`
-  (`StreamSink.ts:32`, `:38`). Both characters are therefore free for reuse;
-  ADR-0003 reuses them.
+  (`StreamSink.ts:32`, `:38`). ADR-0003 adopts Swirly's grid grammar, where `|`
+  is the column separator and a throw gets its own `!` row.
+
+This conclusion was reached independently by Swirly's `grid-mode` branch, whose
+`examples/gridAxis.txt` says the same thing in its own words — "Grid mode
+replaces the continuous marble timeline with a discrete, labelled axis that
+every row shares [...] Sodium streams never complete, so there is no `|` to
+write." Two independent derivations of the same axis is the strongest evidence
+available that it is the right one.
 - **"Column = one `send`" is still false,** because of deferred transactions.
   See the sub-tick handling in ADR-0003. Measured: one `s.send(1)` with a
   `defer` and a 3-element `split` attached spans five transactions.
