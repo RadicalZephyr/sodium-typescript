@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 test('records a mapped stream, one column per transaction', () => {
-  const transcript = runTranscript(b => {
+  const { transcript } = runTranscript(b => {
     const s = b.sink<number>('s');
     b.observeStream('out', s.map(a => a + 1));
   }, [{ s: 7 }, {}, { s: 9 }]);
@@ -23,7 +23,7 @@ test('records a mapped stream, one column per transaction', () => {
 });
 
 test("hold(): the cell's initial value lands in the setup transaction", () => {
-  const transcript = runTranscript(b => {
+  const { transcript } = runTranscript(b => {
     const sa = b.sink<string>('s1');
     b.observeCell('c', sa.hold('a'));
   }, [{}, { s1: 'b' }, {}, { s1: 'c' }, {}]);
@@ -43,7 +43,7 @@ test("hold(): the cell's initial value lands in the setup transaction", () => {
 });
 
 test('snapshot() reads the value the cell held before this transaction', () => {
-  const transcript = runTranscript(b => {
+  const { transcript } = runTranscript(b => {
     const c = b.cellSink<number>('c', 0);
     const s = b.sink<number>('s');
     b.observeStream('snap', s.snapshot(c, (x, y) => x + ' ' + y));
@@ -60,7 +60,7 @@ test('snapshot() reads the value the cell held before this transaction', () => {
 });
 
 test('defer() lands in its own transaction, inside the column that caused it', () => {
-  const transcript = runTranscript(b => {
+  const { transcript } = runTranscript(b => {
     const s = b.sink<number>('s');
     b.observeStream('d', Operational.defer(s));
   }, [{ s: 1 }, { s: 2 }]);

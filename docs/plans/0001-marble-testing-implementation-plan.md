@@ -119,7 +119,14 @@ back to literal spelling.
 
 *Exit:* renders every B1 transcript; a mismatch prints two aligned diagrams;
 the +1 shift is verified by a property test against a probe-sampled recording of
-the same graph (the E9 technique).
+the same graph (the E9 technique). **Done** — 7 tests in `MarbleRender.spec.ts`,
+suite at 75.
+
+The strongest evidence that the notation decision was right: a recorded run of
+`hold()` renders slot for slot as Swirly's `examples/gridHold.txt`, a file
+written by hand to describe Sodium's semantics. `split()` likewise reproduces
+`gridNested.txt`'s nested-label shape. Neither was fitted to; both fell out of
+the recording.
 
 **B3 Parser adapter and driver** — consume `@…/parser`, map
 `GridRowSpecification` to expected transcripts, parse slot literals, drive
@@ -176,9 +183,9 @@ Virtual timer (ADR-0001's `TimerSystemImpl` seam) and trace-all-vertices
 - [x] `Recorder` — transaction keying, tick kinds (setup/external/deferred)
 - [x] `runTranscript` harness — setup transaction, auto-unlisten, registration balance
 - [x] Trailing empty transaction
-- [ ] Renderer, incl. +1 cell shift and nested column labels
-- [ ] Aligned two-diagram failure message
-- [ ] Probe-sampled property test for the shift
+- [x] Renderer, incl. +1 cell shift and nested column labels
+- [x] Aligned two-diagram failure message
+- [x] Probe-sampled property test for the shift
 - [ ] Parser adapter over `@…/parser`
 - [ ] Slot literal parse/format round-trip
 - [ ] Driver

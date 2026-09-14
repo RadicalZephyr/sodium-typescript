@@ -8,7 +8,7 @@ import {
 } from '../../../lib/Lib';
 
 import { Recorder } from './Recorder';
-import { Transcript } from './Transcript';
+import { RowInfo, Transcript } from './Transcript';
 
 /**
  * Declares the rows of a diagram. Sinks are both driven and observed, because
@@ -29,7 +29,18 @@ export interface Column {
   [row: string]: unknown;
 }
 
-type Observation = { name: string; attach: (record: (row: string, value: unknown) => void) => () => void };
+type Observation = {
+  name: string;
+  kind: RowInfo['kind'];
+  attach: (record: (row: string, value: unknown) => void) => () => void;
+};
+
+/** Everything a run produced: what happened, and what shape each row is. */
+export interface Run {
+  /** Declaration order, which is the order rows are drawn in. */
+  readonly rows: ReadonlyArray<RowInfo>;
+  readonly transcript: Transcript;
+}
 
 const build = (declare: (b: Builder) => void, recorder: Recorder) => {
   const sinks = new Map<string, { send: (value: unknown) => void }>();
@@ -44,6 +55,7 @@ const build = (declare: (b: Builder) => void, recorder: Recorder) => {
     claim(name);
     observations.push({
       name,
+      kind: 'stream',
       attach: record => stream.listen(value => record(name, value))
     });
   };
@@ -51,6 +63,7 @@ const build = (declare: (b: Builder) => void, recorder: Recorder) => {
     claim(name);
     observations.push({
       name,
+      kind: 'cell',
       // Cell.listen is Operational.value, so this fires the initial value in
       // the setup transaction and thereafter reports each update in the
       // transaction that caused it. That is the update view; the sampled view
@@ -82,7 +95,8 @@ const build = (declare: (b: Builder) => void, recorder: Recorder) => {
   // its initial value into the same tick (ADR-0003).
   const record = (row: string, value: unknown) => recorder.record(row, value);
   const kills = observations.map(o => o.attach(record));
-  return { sinks, kills };
+  const rows: RowInfo[] = observations.map(o => ({ name: o.name, kind: o.kind }));
+  return { sinks, kills, rows };
 };
 
 /**
@@ -98,11 +112,11 @@ const build = (declare: (b: Builder) => void, recorder: Recorder) => {
 export const runTranscript = (
   declare: (b: Builder) => void,
   script: ReadonlyArray<Column>
-): Transcript => {
+): Run => {
   const recorder = new Recorder();
   const registrationsBefore = getTotalRegistrations();
 
-  const { sinks, kills } = Transaction.run(() => {
+  const { sinks, kills, rows } = Transaction.run(() => {
     recorder.begin('setup');
     return build(declare, recorder);
   });
@@ -135,5 +149,5 @@ export const runTranscript = (
       `cleanly`);
   }
 
-  return recorder.transcript();
+  return { rows, transcript: recorder.transcript() };
 };

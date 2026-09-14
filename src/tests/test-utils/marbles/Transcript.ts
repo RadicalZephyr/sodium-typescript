@@ -32,6 +32,16 @@ export interface Tick {
 
 export type Transcript = ReadonlyArray<Tick>;
 
+/**
+ * What shape a row is, which the transcript cannot know: a stream and a cell
+ * record identically but draw differently, and only a cell is shifted into the
+ * sampled view when rendered.
+ */
+export interface RowInfo {
+  readonly name: string;
+  readonly kind: 'stream' | 'cell';
+}
+
 /** A Tick with its events as a plain object, for readable assertions. */
 export interface PlainTick {
   kind: TickKind;
