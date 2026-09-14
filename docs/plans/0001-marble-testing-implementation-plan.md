@@ -99,7 +99,19 @@ registered from inside the listener. Record `external: boolean` per tick so
 nested columns can be labelled. Drive one trailing empty transaction (ADR-0003).
 
 *Exit:* assertions against `Transcript` literals pass for `map`, `hold` and
-`snapshot`; no `done()`, no manual `kill()`.
+`snapshot`; no `done()`, no manual `kill()`. **Done** — 7 tests in
+`MarbleRecorder.spec.ts`, suite at 68.
+
+`last()` turned out to be unnecessary. Keying ticks on
+`Transaction.currentTransaction` identity and appending on first sight already
+yields the transactions in order, so the recorder never needs to know when one
+ends. F5 still matters — it is what makes the identity readable from inside a
+listener — but the tick-close hook it suggested is not needed.
+
+Two invariants are enforced rather than assumed: a row firing twice in one
+transaction is refused outright (F1 says it cannot happen, so silence would
+make the transcript lie), and a leaked listener fails the test that leaked it
+rather than the next one.
 
 **B2 Renderer** — `Transcript` → grid specification. Cell rows shifted +1 into
 the sampled view; nested column labels for non-external ticks; value formatting
@@ -160,10 +172,10 @@ Virtual timer (ADR-0001's `TimerSystemImpl` seam) and trace-all-vertices
 - [ ] Publish `grid-mode`
 
 **Phase B — helper library**
-- [ ] `Transcript` types and equality
-- [ ] `Recorder` — transaction keying, `last()` tick close, `external` flag
-- [ ] `marbleTest` harness — setup transaction, auto-unlisten, registration balance
-- [ ] Trailing empty transaction
+- [x] `Transcript` types and equality
+- [x] `Recorder` — transaction keying, tick kinds (setup/external/deferred)
+- [x] `runTranscript` harness — setup transaction, auto-unlisten, registration balance
+- [x] Trailing empty transaction
 - [ ] Renderer, incl. +1 cell shift and nested column labels
 - [ ] Aligned two-diagram failure message
 - [ ] Probe-sampled property test for the shift
