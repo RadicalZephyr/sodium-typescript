@@ -6,8 +6,6 @@
 		"removeComments": false,
 		"preserveConstEnums": true,
 		"sourceMap": true,
-		"declaration": true,
-		"declarationDir": "dist/typings",
 		"moduleResolution": "node",
 		"diagnostics": true,
 		"lib": [

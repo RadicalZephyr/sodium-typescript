@@ -63,7 +63,18 @@ Done in two stages, each gated on the measured baseline:
    0.17 cannot drive TypeScript 5. Gate: `npm run build` exits 0 and still emits
    CJS, ESM, UMD and typings.
 
-**Exit:** both gates met, with the prototype not yet started.
+**Exit:** both gates met, with the prototype not yet started. **Done** — 61
+tests green on TypeScript 5.9 / jest 29 with no source changes, and the build
+emits CJS, ESM, UMD and typings, each smoke-tested rather than merely present.
+
+Two things the bump turned up. `rollup-plugin-typescript2` is unusable here: it
+cannot resolve extensionless TS imports under rollup 4, and when
+`@rollup/plugin-node-resolve` resolved them instead, rpt2 silently declined to
+transform those files, so rollup parsed raw TypeScript. Replaced with
+`@rollup/plugin-typescript`. And the UMD output was never minified — the uglify
+plugin has been commented out for years while the file kept the `.min.js` name.
+That behaviour is preserved rather than fixed, since changing it is a change to
+a published artifact and unrelated to this work.
 
 ## Phase A — Swirly fork
 
@@ -141,8 +152,8 @@ Virtual timer (ADR-0001's `TimerSystemImpl` seam) and trace-all-vertices
 - [ ] Settle the TS3/jest23 interop route
 
 **Phase C0 — toolchain bump**
-- [ ] typescript 5, jest 29, ts-jest 29, `@types/*` — 61 tests green
-- [ ] rollup and plugins — `npm run build` exits 0, all four outputs emitted
+- [x] typescript 5, jest 29, ts-jest 29, `@types/*` — 61 tests green
+- [x] rollup and plugins — `npm run build` exits 0, all four outputs emitted
 
 **Phase A — swirly fork**
 - [ ] `!` throw row: type, parser, renderer
